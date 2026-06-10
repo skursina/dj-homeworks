@@ -1,23 +1,37 @@
 {% extends "base.html" %}
-{% load static %}
 
-{% block title %}Каталог книг{% endblock %}
+{% block title %}
+Каталог книг
+{% endblock %}
+
 {% block content %}
-    <div class="container">
-        <div class="header">
-            <h1><a href="/books">Каталог</a></h1>
-        </div>
-        <div class="row">
-            <div class="book col-md-4">
-                <h2>Сияние</h2>
-                <p>Автор: Стивен Кинг</p>
-                <p>Дата публикации: 2018-09-10</p>
-            </div>
-            <div class="book col-md-4">
-                <h2>1984</h2>
-                <p>Автор: Джордж Оруэл</p>
-                <p>Дата публикации: 2015-03-11</p>
-            </div>
-        </div>
-    </div>
+<h1>Каталог</h1>
+
+{% if selected_date %}
+  <h2>Книги за {{ selected_date|date:"Y-m-d" }}</h2>
+{% endif %}
+
+{% for book in books %}
+  <h2>{{ book.name }}</h2>
+  <p>Автор: {{ book.author }}</p>
+  <p>Дата публикации: {{ book.pub_date|date:"Y-m-d" }}</p>
+{% empty %}
+  <p>Книг за эту дату нет.</p>
+{% endfor %}
+
+{% if selected_date %}
+  <nav>
+    {% if previous_date %}
+      <a href="{% url 'books_by_date' previous_date|date:'Y-m-d' %}">
+        Предыдущая дата
+      </a>
+    {% endif %}
+
+    {% if next_date %}
+      <a href="{% url 'books_by_date' next_date|date:'Y-m-d' %}">
+        Следующая дата
+      </a>
+    {% endif %}
+  </nav>
+{% endif %}
 {% endblock %}
