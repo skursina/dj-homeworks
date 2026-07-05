@@ -22,6 +22,74 @@
 
 2. Для обновления объектов удобно использовать метод `update_or_create`: https://docs.djangoproject.com/en/3.2/ref/models/querysets/#update-or-create.
 
+## Архитектура проекта
+
+Проект построен на Django 3.2 с использованием Django Rest Framework. Структура:
+
+```
+stocks_products/
+├── stocks_products/      # конфигурация проекта (settings, urls)
+├── logistic/             # приложение для работы со складами и продуктами
+│   ├── models.py         # модели данных
+│   ├── serializers.py    # сериализаторы для API
+│   ├── views.py          # представления (viewsets)
+│   ├── urls.py           # маршруты API
+│   ├── filters.py        # фильтрация и поиск
+│   └── admin.py          # административная панель
+├── manage.py             # утилита управления проектом
+├── requirements.txt      # зависимости проекта
+└── requests-examples.http  # примеры API-запросов
+```
+
+### Модели данных
+
+#### Product (Продукт)
+- `title` — название продукта (уникальное, строка до 60 символов)
+- `description` — описание продукта (текст, опционально)
+
+#### Stock (Склад)
+- `address` — адрес склада (уникальная строка до 200 символов)
+- `products` — связь ManyToMany с продуктами через промежуточную таблицу
+
+#### StockProduct (Позиция на складе)
+- `stock` — ссылка на склад (ForeignKey)
+- `product` — ссылка на продукт (ForeignKey)
+- `quantity` — количество единиц (positive integer)
+- `price` — стоимость хранения (decimal, неотрицательное число)
+
+## API Endpoints
+
+### Продукты
+
+| Метод | Эндпоинт | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/products/` | Список всех продуктов (с пагинацией) |
+| GET | `/api/v1/products/?search=<query>` | Поиск продуктов по названию/описанию |
+| POST | `/api/v1/products/` | Создание нового продукта |
+| GET | `/api/v1/products/{id}/` | Получение одного продукта |
+| PATCH | `/api/v1/products/{id}/` | Частичное обновление продукта |
+| PUT | `/api/v1/products/{id}/` | Полное обновление продукта |
+| DELETE | `/api/v1/products/{id}/` | Удаление продукта |
+
+### Склады
+
+| Метод | Эндпоинт | Описание |
+|-------|----------|----------|
+| GET | `/api/v1/stocks/` | Список всех складов (с пагинацией) |
+| GET | `/api/v1/stocks/?products=<id>` | Склады с определенным продуктом |
+| GET | `/api/v1/stocks/?search=<query>` | Поиск по адресу или продуктам |
+| POST | `/api/v1/stocks/` | Создание нового склада с позициями |
+| GET | `/api/v1/stocks/{id}/` | Получение одного склада |
+| PATCH | `/api/v1/stocks/{id}/` | Обновление склада и позиций |
+| PUT | `/api/v1/stocks/{id}/` | Полное обновление склада |
+| DELETE | `/api/v1/stocks/{id}/` | Удаление склада |
+
+## Подсказки
+
+1. Вам необходимо будет задать логику во views и serializers. В места, где нужно добавлять код, включены комментарии. После того, как вы добавите код, комментарии можно удалить.
+
+2. Для обновления объектов удобно использовать метод `update_or_create`: https://docs.djangoproject.com/en/3.2/ref/models/querysets/#update-or-create.
+
 ## Дополнительное задание
 
 ### Поиск складов с продуктами
@@ -36,24 +104,85 @@ GET {{baseUrl}}/stocks/?search=помид
 Content-Type: application/json
 ```
 
-## Документация по проекту
+## Установка и запуск
 
-Для запуска проекта необходимо
+### Требования
 
-Установить зависимости:
+- Python 3.8+
+- PostgreSQL 12+
+- Virtual environment (рекомендуется)
+
+### Шаги установки
+
+1. Клонируйте репозиторий:
+
+```bash
+git clone <repository-url>
+cd stocks_products
+```
+
+2. Создайте и активируйте виртуальное окружение:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate    # Windows
+```
+
+3. Установите зависимости:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-Вам необходимо будет создать базу в postgres и прогнать миграции:
+4. Настройте базу данных PostgreSQL:
 
-```base
-manage.py migrate
+Создайте базу данных в PostgreSQL:
+
+```sql
+CREATE DATABASE netology_stocks_products;
 ```
 
-Выполнить команду:
+При необходимости измените параметры подключения в `stocks_products/settings.py`:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'netology_stocks_products',
+        'HOST': '127.0.0.1',
+        'PORT': '5432',
+        'USER': 'postgres',
+        'PASSWORD': 'ваш_пароль',
+    }
+}
+```
+
+5. Выполните миграции:
+
+```bash
+python manage.py migrate
+```
+
+6. Создайте суперпользователя (опционально):
+
+```bash
+python manage.py createsuperuser
+```
+
+7. Запустите сервер:
 
 ```bash
 python manage.py runserver
 ```
+
+Сервер будет доступен по адресу `http://127.0.0.1:8000/`
+
+## Примеры запросов
+
+В файле `requests-examples.http` содержатся готовые примеры API-запросов для всех операций CRUD. Их можно выполнять с помощью расширений для VS Code (REST Client) или через curl/Postman.
+
+## Документация
+
+- [Django documentation](https://docs.djangoproject.com/en/3.2/)
+- [Django Rest Framework](https://www.django-rest-framework.org/)
+- [Django Filters](https://django-filter.readthedocs.io/)
