@@ -100,3 +100,169 @@ manage.py migrate
 ```bash
 python manage.py runserver
 ```
+
+### API Эндпоинты
+
+#### Объявления
+
+| Метод	| Эндпоинт	| Описание	| Права |
+|-------|-----------|-----------|-------|
+| GET	| `/api/advertisements/` |	Список объявлений	| Публичный |
+| GET	| `/api/advertisements/{id}/`	| Детали объявления	| Публичный |
+| POST |	`/api/advertisements/` |	Создание объявления	| Только авторизованные |
+| PATCH |	`/api/advertisements/{id}/`	| Частичное обновление |	Автор/Админ |
+| PUT |	`/api/advertisements/{id}/`	| Полное обновление	| Автор/Админ |
+| DELETE |	`/api/advertisements/{id}/` |	Удаление |	Автор/Админ |
+
+#### Избранное
+
+| Метод	| Эндпоинт	| Описание	| Права |
+|-------|-----------|-----------|-------|
+| POST |	`/api/advertisements/{id}/favorite/` |	Добавить в избранное |	Авторизованные |
+| DELETE |	`/api/advertisements/{id}/unfavorite/` |	Удалить из избранного |	Авторизованные |
+| GET	| `/api/advertisements/favorites/` |	Список избранных	| Авторизованные |
+
+### Фильтрация
+
+#### Параметры фильтрации
+
+| Параметр	| Тип	| Описание	| Пример |
+|-----------|-----|-----------|--------|
+| `status` |	string |	Фильтр по статусу	| `?status=OPEN` |
+| `creator`	| integer	| Фильтр по создателю	| `?creator=1` |
+| `title`	| string	| Поиск по заголовку	| `?title=ноутбук` |
+| `created_at_before`	| date	| До даты	| `?created_at_before=2024-01-01` |
+| `created_at_after`	| date	| После даты	| `?created_at_after=2024-01-01` |
+| `is_favorited`	| boolean	| Только избранные |	`?is_favorited=true` |
+
+
+#### Примеры фильтрации
+
+```http
+# Все открытые объявления
+GET /api/advertisements/?status=OPEN
+
+# Объявления пользователя с id=1
+GET /api/advertisements/?creator=1
+
+# Поиск по заголовку
+GET /api/advertisements/?title=ноутбук
+
+# Объявления за октябрь 2024
+GET /api/advertisements/?created_at_after=2024-10-01&created_at_before=2024-11-01
+
+# Только избранные объявления
+GET /api/advertisements/?is_favorited=true
+```
+
+### Аутентификация
+
+Используется Token Authentication.
+
+#### Получение токена
+
+1. Создайте пользователя через админку: `/admin/`
+2. Создайте токен для пользователя: `/admin/authtoken/token/`
+3. Используйте токен в запросах:
+```http   
+Authorization: Token ваш_токен
+```
+
+### Примеры запросов
+
+#### Создание объявления
+```http
+POST /api/advertisements/
+Authorization: Token ваш_токен
+Content-Type: application/json
+
+{
+  "title": "MacBook Pro 2024",
+  "description": "Продам MacBook Pro в отличном состоянии",
+  "status": "OPEN"
+}
+```
+
+#### Обновление объявления
+```http
+PATCH /api/advertisements/1/
+Authorization: Token ваш_токен
+Content-Type: application/json
+
+{
+  "status": "CLOSED"
+}
+```
+
+#### Добавление в избранное
+```http
+POST /api/advertisements/1/favorite/
+Authorization: Token ваш_токен
+```
+
+#### Получение избранных
+```http
+GET /api/advertisements/favorites/
+Authorization: Token ваш_токен
+```
+
+### Ответы API
+
+#### Успешный ответ (200 OK)
+```json
+{
+  "id": 1,
+  "title": "MacBook Pro 2024",
+  "description": "Продам MacBook Pro в отличном состоянии",
+  "creator": {
+    "id": 1,
+    "username": "john",
+    "first_name": "John",
+    "last_name": "Doe"
+  },
+  "status": "OPEN",
+  "created_at": "2024-01-15T10:30:00Z",
+  "updated_at": "2024-01-15T10:30:00Z",
+  "is_favorited": false,
+  "favorites_count": 5
+}
+```
+
+#### Ошибка валидации (400 Bad Request)
+```json
+{
+  "detail": "Нельзя создавать более 10 открытых объявлений."
+}
+```
+
+#### Ошибка авторизации (401 Unauthorized)
+```json
+{
+  "detail": "Authentication credentials were not provided."
+}
+```
+
+#### Отказ в доступе (403 Forbidden)
+```json
+{
+  "detail": "You do not have permission to perform this action."
+}
+```
+
+### Ограничения
+
+#### Лимит открытых объявлений
+* Пользователь не может иметь более 10 объявлений со статусом OPEN
+* Попытка создать 11-е открытое объявление вернет ошибку
+* Попытка перевести закрытое объявление в OPEN, если уже есть 10 открытых, также вернет ошибку
+
+#### Ограничения для черновиков (DRAFT)
+* Черновики видны только автору объявления
+* Администраторы видят все черновики
+* Неавторизованные пользователи не видят черновики
+* Черновики нельзя добавить в избранное
+
+#### Ограничения для избранного
+* Пользователь не может добавить свое объявление в избранное
+* Одно объявление можно добавить в избранное только один раз
+* Черновики нельзя добавить в избранное
