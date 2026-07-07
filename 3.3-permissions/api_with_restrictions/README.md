@@ -131,8 +131,8 @@ python manage.py runserver
 | `status` |	string |	Фильтр по статусу	| `?status=OPEN` |
 | `creator`	| integer	| Фильтр по создателю	| `?creator=1` |
 | `title`	| string	| Поиск по заголовку	| `?title=ноутбук` |
-| `created_at_before`	| date	| До даты	| `?created_at_before=2024-01-01` |
-| `created_at_after`	| date	| После даты	| `?created_at_after=2024-01-01` |
+| `created_at_before`	| date	| До даты	| `?created_at_before=2026-08-01` |
+| `created_at_after`	| date	| После даты	| `?created_at_after=2026-07-01` |
 | `is_favorited`	| boolean	| Только избранные |	`?is_favorited=true` |
 
 
@@ -148,8 +148,8 @@ GET /api/advertisements/?creator=1
 # Поиск по заголовку
 GET /api/advertisements/?title=ноутбук
 
-# Объявления за октябрь 2024
-GET /api/advertisements/?created_at_after=2024-10-01&created_at_before=2024-11-01
+# Объявления за июль 2026
+GET /api/advertisements/?created_at_after=2026-07-01&created_at_before=2026-08-01
 
 # Только избранные объявления
 GET /api/advertisements/?is_favorited=true
@@ -177,7 +177,7 @@ Authorization: Token ваш_токен
 Content-Type: application/json
 
 {
-  "title": "MacBook Pro 2024",
+  "title": "MacBook Pro",
   "description": "Продам MacBook Pro в отличном состоянии",
   "status": "OPEN"
 }
@@ -212,7 +212,7 @@ Authorization: Token ваш_токен
 ```json
 {
   "id": 1,
-  "title": "MacBook Pro 2024",
+  "title": "MacBook Pro",
   "description": "Продам MacBook Pro в отличном состоянии",
   "creator": {
     "id": 1,
@@ -221,8 +221,8 @@ Authorization: Token ваш_токен
     "last_name": "Doe"
   },
   "status": "OPEN",
-  "created_at": "2024-01-15T10:30:00Z",
-  "updated_at": "2024-01-15T10:30:00Z",
+  "created_at": "2026-07-15T10:30:00Z",
+  "updated_at": "2026-07-15T10:30:00Z",
   "is_favorited": false,
   "favorites_count": 5
 }
