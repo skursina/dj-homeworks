@@ -2,3 +2,5 @@
 pytest
 pytest-django
 model_bakery
+djangorestframework
+django-filter
