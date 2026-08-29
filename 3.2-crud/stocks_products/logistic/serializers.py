@@ -39,17 +39,19 @@ class StockSerializer(serializers.ModelSerializer):
         return stock
 
     def update(self, instance, validated_data):
-        positions = validated_data.pop('positions')
+        positions = validated_data.pop('positions', None)
+
         stock = super().update(instance, validated_data)
 
-        for position in positions:
-            StockProduct.objects.update_or_create(
-                stock=stock,
-                product_id=position['product'].id,
-                defaults={
-                    'quantity': position['quantity'],
-                    'price': position['price']
-                }
-            )
+        if positions is not None:
+            for position in positions:
+                StockProduct.objects.update_or_create(
+                    stock=stock,
+                    product=position['product'],
+                    defaults={
+                        'quantity': position['quantity'],
+                        'price': position['price'],
+                    },
+                )
 
         return stock
